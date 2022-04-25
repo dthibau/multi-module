@@ -27,6 +27,8 @@
         <java.version>11</java.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
+        <sonar.login>admin</sonar.login>
+        <sonar.password>admin123</sonar.password>
     </properties>
 
     <build>
