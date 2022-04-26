@@ -1,14 +1,11 @@
 pipeline {
    agent none 
-    tools {
-        jdk 'JDK11'
-        maven 'MAVEN3'
-    }
+    
     stages {
         stage('Compile et tests') {
             agent {
                 docker {
-                    image 'maven:3-alpine'
+                    image 'maven:3.8.5-openjdk-11-slim'
                     args '-v $HOME/.m2:/root/.m2'
                 }
             }
@@ -36,6 +33,10 @@ pipeline {
             parallel {
                 stage('Tests d integration') {
                      agent any
+                     tools {
+                        jdk 'JDK11'
+                        maven 'MAVEN3'
+                    }
                     steps {
                         sh 'mvn clean integration-test'
                     }
@@ -43,6 +44,10 @@ pipeline {
                 }
                  stage('Analyse Sonar') {
                       agent any
+                      tools {
+                        jdk 'JDK11'
+                        maven 'MAVEN3'
+                        }
                      steps {
                         sh 'mvn -Dsonar.login=admin -Dsonar.password=admin123 clean verify sonar:sonar'
                      }
