@@ -72,14 +72,18 @@ pipeline {
                 
             }
         }
-        stage('Déploiement intégration') {
+        stage('Déploiement vers DockerHub') {
             agent any
           
 
             steps {
                 unstash 'app'
-                sh "mv *.jar ${env.DATACENTER}.jar"
-                
+                script {
+                    def dockerImage = docker.build('dthibau/multi-module', '.')
+                    docker.withRegistry('https://registry.hub.docker.com', 'dthibau_docker') {
+                        dockerImage.push 'latest'
+                    }
+                }   
             }
         }
 
