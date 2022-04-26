@@ -4,9 +4,8 @@ pipeline {
     stages {
         stage('Compile et tests') {
             agent {
-                docker {
-                    image 'maven:3.8.5-openjdk-11-slim'
-                    args '-v $HOME/.m2:/root/.m2'
+                kubernetes {
+                    yamlFile 'kubernetesPod.yaml'
                 }
             }
             steps {
