@@ -2,4 +2,7 @@
 
 
 
-standardPipeline(projectName: 'MyProject', serverDomain: 'www.thibau.org')
+standardPipeline {
+    projectName = 'MyProject'
+    serverDomain = 'www.thibau.org'
+ } 
