@@ -1,14 +1,16 @@
 pipeline {
-   agent none 
-    tools {
-        jdk 'JDK11'
-        maven 'MAVEN3'
-    }
+   agent none
+   tools {
+    jdk 'JDK14'
+    maven 'MAVEN3'
+   } 
+
+
     stages {
         stage('Compile et tests') {
-            agent any
+            agent any 
             steps {
-                sh 'mvn -Dmaven.test.failure.ignore=true clean package'
+                sh 'mvn -Dmaven.test.failure.ignore=true clean package'  
             }
             post {
                 always {
@@ -24,24 +26,38 @@ pipeline {
                     mail bcc: '', body: 'Please correct ASAP', cc: '', from: '', replyTo: '', subject: 'Build failed', to: 'david.thibau@gmail.com'
                 }
             }
-
              
         }
         stage('Analyse qualité et test intégration') {
             parallel {
                 stage('Tests d integration') {
-                     agent any
+                    agent any
                     steps {
-                        sh 'mvn clean integration-test'
+                        echo 'Tests d integration'
+                        sh "mvn clean integration-test"
                     }
                     
                 }
-                 stage('Analyse Sonar') {
-                      agent any
+                stage('Analyse Sonar') {
+                    agent any
+                    environment {
+                        SONAR_TOKEN = credentials('JETON_SONAR')
+                    }
                      steps {
-                        sh 'mvn -Dsonar.login=admin -Dsonar.password=admin123 clean verify sonar:sonar'
-                     }
-                    
+                        echo 'Analyse sonar'
+                        sh "mvn -Dsonar.login=$SONAR_TOKEN clean verify sonar:sonar"
+                     }    
+                }
+                stage('Dependecy scanning') {
+                    agent any
+                    steps {
+                        sh 'mvn -DskipTests=true clean package dependency-check:check'
+                    }
+                    post {
+                         always {
+                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'target', reportFiles: 'dependency-check-report.html', reportName: 'HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                         }
+                    }
                 }
             }
             
@@ -49,6 +65,9 @@ pipeline {
             
         stage('Sélection DATACENTER') {
             agent none
+            options {
+                timeout(5)
+            }
             input {
                 message 'Vers quel data center voulez vous déployer ?'
                 ok 'Déployer'
@@ -59,6 +78,10 @@ pipeline {
 
             steps {
                 echo "Déploiement intégration vers $DATACENTER"
+                script {
+                    dataCenter = "$DATACENTER"
+                }
+
                 
             }
         }
@@ -67,11 +90,14 @@ pipeline {
           
 
             steps {
+                cleanWs()
                 unstash 'app'
-                sh "mv *.jar ${env.DATACENTER}.jar"
+                sh 'ls'
+                sh "mv *application*.jar ${dataCenter}.jar"
                 
             }
         }
+
 
      }
     
