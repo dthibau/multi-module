@@ -1,4 +1,11 @@
+def dataCenter = ''
+
+def log(msg) {
+    println msg
+}
+
 pipeline {
+
    agent none
    tools {
     jdk 'JDK14'
@@ -20,6 +27,9 @@ pipeline {
                     archiveArtifacts artifacts: '**/target/*.jar', followSymlinks: false
                     dir('application/target') {
                         stash includes: '*.jar', name: 'app'
+                    }
+                    script {
+                        log('Coucou')
                     }
                 }
                 unsuccessful {
@@ -88,7 +98,6 @@ pipeline {
         stage('Déploiement intégration') {
             agent any
           
-
             steps {
                 cleanWs()
                 unstash 'app'
